@@ -20,6 +20,11 @@
       "Default" : "c4.xlarge",
       "Description" : "Instance type for CDH datanode"
     },
+    "instancetypeOpenTsdb" : {
+      "Type" : "String",
+      "Default" : "m4.large",
+      "Description" : "Instance type for open TSDB"
+    },
     "instancetypeEdge" : {
       "Type" : "String",
       "Default" : "m4.2xlarge",
@@ -193,6 +198,47 @@
             "AssociatePublicIpAddress": "true"
           }
         ]
+      }
+    },
+    "instanceOpenTsdb": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "DisableApiTermination": "false",
+        "InstanceInitiatedShutdownBehavior": "stop",
+        "ImageId": { "Ref" : "imageId" },
+        "InstanceType": { "Ref" : "instancetypeOpenTsdb" },
+        "SubnetId": { "Ref" : "PrivateSubnet" },
+        "KeyName": { "Ref" : "keyName" },
+        "Monitoring": "false",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {"Fn::Join" : [ "-", [ {"Ref": "pndaCluster"}, "opentsdb-$node_idx$" ] ]}
+          },
+          {
+            "Key": "pnda_cluster",
+            "Value": {"Ref": "pndaCluster"}
+          },
+          {
+            "Key": "node_type",
+            "Value": "opentsdb"
+          },
+          {
+            "Key": "node_idx",
+            "Value": "$node_idx$"
+          }
+        ],
+        "BlockDeviceMappings" : [
+          {
+              "DeviceName" : "/dev/sda1",
+              "Ebs" : { "VolumeSize" : "50" }
+          },
+          {
+              "DeviceName" : "/dev/sdc",
+              "Ebs" : { "VolumeSize" : {"Ref": "logVolumeSizeGb"} }
+          }
+        ],
+        "SecurityGroupIds": [ {"Ref": "pndaSg"} ]
       }
     },
     "instanceCdhEdge": {
