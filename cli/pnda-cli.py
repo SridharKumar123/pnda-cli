@@ -184,7 +184,8 @@ def main():
             fields['datanodes'] = node_counts['hadoop-dn']
         if fields['kafka_nodes'] is None:
             fields['kafka_nodes'] = node_counts['kafka']
-
+        if fields['opentsdb_nodes'] is None:
+            fields['opentsdb_nodes'] = node_counts['opentsdb']
         if fields['datanodes'] < node_counts['hadoop-dn']:
             CONSOLE.info("You cannot shrink the cluster using this CLI, existing number of datanodes is: %s", node_counts['hadoop-dn'])
             sys.exit(1)
@@ -196,9 +197,13 @@ def main():
             sys.exit(1)
         elif fields['kafka_nodes'] > node_counts['kafka']:
             CONSOLE.info("Increasing the number of kafkanodes from %s to %s", node_counts['kafka'], fields['kafka_nodes'])
-
-        # Does not support changing the following during an expand
-        fields['opentsdb_nodes'] = node_counts['opentsdb']
+        if fields['opentsdb_nodes'] < node_counts['opentsdb']:
+            CONSOLE.info("You cannot shrink the cluster using this CLI, existing number of opentsdb nodes is: %s", node_counts['opentsdb'])
+            sys.exit(1)
+        elif fields['opentsdb_nodes'] > node_counts['opentsdb']:
+            CONSOLE.info("Increasing the number of opentsdb nodes from %s to %s", node_counts['opentsdb'], fields['opentsdb_nodes'])
+            do_orchestrate = True
+        # Does not support changing the following during an expand        
         fields['zk_nodes'] = node_counts['zk']
 
         deployment_target.expand(fields, do_orchestrate)
